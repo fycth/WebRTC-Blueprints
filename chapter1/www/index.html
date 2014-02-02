@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My WebRTC application</title>
+<style type="text/css">
+section {
+    width: 90%;
+    height: 200px;
+    background: red;
+    margin: auto;
+    padding: 10px;
+}
+div#lVideo {
+    width: 45%;
+    height: 200px;
+    background: black;
+    float: left;
+}
+div#rVideo {
+    margin-left: 45%;
+    height: 200px;
+    background: black;
+}
+</style>
+    <script type="text/javascript" src="myrtclib.js"></script>
+    <script type="text/javascript" src="myrtcadapter.js"></script>
+</head>
+<body onLoad="onPageLoad();">
+<div id='status'></div>
+<section>
+<div id='lVideo'>
+    <video width="100%" height="100%" autoplay="autoplay" id="localVideo" muted="true"></video>
+</div>
+<div id='rVideo'>
+    <video width="100%" height="100%" autoplay="autoplay" id="remoteVideo"></video>
+</div>
+</section>
+
+<script>
+function onPageLoad() {
+var _divV = document.getElementById("lVideo");
+var _w = _divV.offsetWidth;
+var _h = _w * 3 / 4;
+_divV.offsetHeight = _h;
+_divV.setAttribute("style","height:"+_h+"px");
+_divV.style.height=_h+'px';
+
+_divV = document.getElementById("rVideo");
+_divV.setAttribute("style","height:"+_h+"px");
+_divV.style.height=_h+'px';
+
+myrtclibinit("ws://chapter1.oslikas.com:30000",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
+
+};
+
+function OnRoomReceived(room) {
+    var st = document.getElementById("status");
+    st.innerHTML = "Now, if somebody wants to join you, should use this link: <a href=\""+window.location.href+"?room="+room+"\">"+window.location.href+"?room="+room+"</a>";
+};
+</script>
+
+</body>
+</html>

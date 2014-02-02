@@ -1,0 +1,16 @@
+{application, rtcserver,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  cowlib,
+                  cowboy,
+                  compiler,
+                  gproc
+                 ]},
+  {mod, { rtcserver_app, []}},
+  {env, []}
+ ]}.

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My WebRTC file sharing application</title>
+<style type="text/css">
+
+</style>
+    <script type="text/javascript" src="myrtclib.js"></script>
+    <script type="text/javascript" src="myrtcadapter.js"></script>
+</head>
+<body onLoad="onPageLoad();">
+<div id='status'></div>
+<div>
+    <input type="file" id="files" name="files[]" multiple />
+    <output id="list"></output>
+</div>
+<div>
+    <button onclick="onSendBtnClick()">Send</button>
+</div>
+<script>
+function onPageLoad() {
+    // Check for the various File API support.
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        // Great success! All the File APIs are supported.
+    } else {
+        alert('The File APIs are not fully supported in this browser.');
+    }
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+myrtclibinit("ws://chapter1.oslikas.com:30000");
+};
+
+function onSendBtnClick() {
+    sendDataMessage("123");
+};
+
+function OnRoomReceived(room) {
+    var st = document.getElementById("status");
+    st.innerHTML = "Now, if somebody wants to join you, should use this link: <a href=\""+window.location.href+"?room="+room+"\">"+window.location.href+"?room="+room+"</a>";
+};
+
+function handleFileSelect(evt) {
+    var files = evt.target.files; // FileList object
+
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    for (var i = 0, f; f = files[i]; i++) {
+        output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                f.size, ' bytes, last modified: ',
+                f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+                '</li>');
+    }
+    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+};
+</script>
+
+</body>
+</html>
