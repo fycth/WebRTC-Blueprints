@@ -18,6 +18,8 @@
     <button onclick="onSendBtnClick()">Send</button>
 </div>
 <script>
+    var filelist;
+
 function onPageLoad() {
     // Check for the various File API support.
     if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -26,11 +28,22 @@ function onPageLoad() {
         alert('The File APIs are not fully supported in this browser.');
     }
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-myrtclibinit("ws://chapter1.oslikas.com:30000");
+    myrtclibinit("ws://chapter2.oslikas.com:30000");
 };
 
 function onSendBtnClick() {
-    sendDataMessage("123");
+    for (var i = 0, f; f = filelist[i]; i++) {
+        var reader = new FileReader();
+        reader.onload = (function(theFile) {
+            return function(evt) {
+//                alert(evt.target.result);
+                var msg = JSON.stringify({"type" : "file", "name" : theFile.name, "size" : theFile.size, "data" : evt.target.result});
+//                sendDataMessage(evt.target.result);
+                sendDataMessage(msg);
+            };
+        })(f);
+        reader.readAsDataURL(f);
+    }
 };
 
 function OnRoomReceived(room) {
@@ -38,8 +51,15 @@ function OnRoomReceived(room) {
     st.innerHTML = "Now, if somebody wants to join you, should use this link: <a href=\""+window.location.href+"?room="+room+"\">"+window.location.href+"?room="+room+"</a>";
 };
 
+function onFileReceived(name,size) {
+    var output = [];
+    output.push('<li>just reived: <strong>', escape(name), '</strong>', size, ' bytes', '</li>');
+    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+}
+
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
+    filelist = files;
 
     // files is a FileList of File objects. List some properties.
     var output = [];

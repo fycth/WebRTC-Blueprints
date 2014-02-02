@@ -1,6 +1,11 @@
+
+var webrtcDetectedVersion = null;
+window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+
 function initWebRTCAdapter() {
     if (navigator.mozGetUserMedia) {
         webrtcDetectedBrowser = "firefox";
+        webrtcDetectedVersion = parseInt(navigator.userAgent.match(/Firefox\/([0-9]+)\./)[1], 10);
 
         RTCPeerConnection = mozRTCPeerConnection;
         RTCSessionDescription = mozRTCSessionDescription;
@@ -31,6 +36,7 @@ function initWebRTCAdapter() {
         return true;
     } else if (navigator.webkitGetUserMedia) {
         webrtcDetectedBrowser = "chrome";
+        webrtcDetectedVersion = parseInt(navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./)[2], 10);
 
         RTCPeerConnection = webkitRTCPeerConnection;
         getUserMedia = navigator.webkitGetUserMedia.bind(navigator);

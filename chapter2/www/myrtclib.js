@@ -13,15 +13,28 @@
     var channelReady;
     var channel;
 
+    var pc_constraints = {"optional": [{RtpDataChannels: true}]};
+    var data_constraint = {reliable :false};
+
     var pc_config = {"iceServers":
        [{url:'stun:23.21.150.121'},
         {url:'stun:stun.l.google.com:19302'}]};
 
-//    var sdpConstraints = {'mandatory': {'OfferToReceiveAudio':false, 'OfferToReceiveVideo':false }};
-
     function myrtclibinit(sURL) {
         signalingURL = sURL;
         initWebRTCAdapter();
+        if (webrtcDetectedBrowser === 'firefox' ||
+            (webrtcDetectedBrowser === 'chrome' && webrtcDetectedVersion >= 31)) {
+            pc_constraints = null;
+            data_constraint = null;
+        }
+
+        window.webkitStorageInfo.requestQuota(window.PERSISTENT, 1024*1024, function(grantedBytes) {
+            console.log("quota granted " + grantedBytes);
+        }, function(e) {
+            console.log('Error', e);
+        });
+
         openChannel();
     };
 
@@ -87,8 +100,6 @@
     };
 
     function createPeerConnection() {
-//        var pc_constraints = {"optional": [{"DtlsSrtpKeyAgreement": true},{RtpDataChannels: true}]};
-        var pc_constraints = null;
         try {
             pc = new RTCPeerConnection(pc_config, pc_constraints);
             pc.onicecandidate = onIceCandidate;
@@ -99,11 +110,53 @@
     };
 
     function createDataChannel() {
-//        var data_constraint = {reliable :false};
-        var data_constraint = null;
         sendDChannel = pc.createDataChannel("mydatachannel"+room,data_constraint);
         sendDChannel.onmessage = function(event) {
-            alert("received: " + event.data);
+            try {
+                var msg = JSON.parse(event.data);
+                if (msg.type === 'file')
+                {
+                    onFileReceived(msg.name, msg.size);
+                    function onFSinit(fs) {
+                        fs.root.getFile(msg.name, {create: true}, function(fileEntry) {
+                            console.log('received file written to ' + fileEntry.fullPath);
+                            fileEntry.createWriter(function(fileWriter) {
+                                fileWriter.onwriteend = function(e) {
+                                    console.log('Write completed.');
+                                };
+
+                                fileWriter.onerror = function(e) {
+                                    console.log('Write failed: ' + e.toString());
+                                };
+
+
+                                var hyperlink = document.createElement('a');
+                                hyperlink.href = msg.data;
+                                hyperlink.target = '_blank';
+                                hyperlink.download = msg.name || msg.data;
+
+                                var mouseEvent = new MouseEvent('click', {
+                                    view: window,
+                                    bubbles: true,
+                                    cancelable: true
+                                });
+
+                                hyperlink.dispatchEvent(mouseEvent);
+                                (window.URL || window.webkitURL).revokeObjectURL(hyperlink.href);
+
+
+
+                            }, onFSerror);
+
+                        }, onFSerror);
+                    }
+                    function onFSerror(e) {
+                        console.log('Error: ' + e);
+                    }
+                    window.requestFileSystem(window.PERSISTENT, msg.size, onFSinit, onFSerror);
+                }
+            }
+            catch (e) {}
         }
     }
 
@@ -119,11 +172,6 @@
 
     function doCall() {
         createDataChannel();
-//        var constraints = {"optional": [], "mandatory": {"MozDontOfferDataChannel": true}};
-//        if (webrtcDetectedBrowser === "chrome")
-//            for (var prop in constraints.mandatory) if (prop.indexOf("Moz") != -1) delete constraints.mandatory[prop];
-
-//        constraints = mergeConstraints(constraints, sdpConstraints);
         pc.createOffer(setLocalAndSendMessage, failureCallback, null);
     };
 
@@ -140,13 +188,5 @@
     function sendDataMessage(data) {
         sendDChannel.send(data);
     }
-/*
-    function mergeConstraints(cons1, cons2) {
-        var merged = cons1;
-        for (var name in cons2.mandatory) merged.mandatory[name] = cons2.mandatory[name];
-        merged.optional.concat(cons2.optional);
-        return merged;
-    };
-*/
 
 
