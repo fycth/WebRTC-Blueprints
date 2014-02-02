@@ -116,7 +116,6 @@
                 var msg = JSON.parse(event.data);
                 if (msg.type === 'file')
                 {
-                    onFileReceived(msg.name, msg.size);
                     function onFSinit(fs) {
                         fs.root.getFile(msg.name, {create: true}, function(fileEntry) {
                             console.log('received file written to ' + fileEntry.fullPath);
@@ -129,19 +128,20 @@
                                     console.log('Write failed: ' + e.toString());
                                 };
 
+//                                var hyperlink = document.createElement('a');
+//                                hyperlink.href = msg.data;
+//                                hyperlink.target = '_blank';
+//                                hyperlink.download = msg.name || msg.data;
 
-                                var hyperlink = document.createElement('a');
-                                hyperlink.href = msg.data;
-                                hyperlink.target = '_blank';
-                                hyperlink.download = msg.name || msg.data;
+                                onFileReceived(msg.name, msg.size, msg.data);
 
-                                var mouseEvent = new MouseEvent('click', {
-                                    view: window,
-                                    bubbles: true,
-                                    cancelable: true
-                                });
+//                                var mouseEvent = new MouseEvent('click', {
+//                                    view: window,
+//                                    bubbles: true,
+//                                    cancelable: true
+//                                });
 
-                                hyperlink.dispatchEvent(mouseEvent);
+//                                hyperlink.dispatchEvent(mouseEvent);
                                 (window.URL || window.webkitURL).revokeObjectURL(hyperlink.href);
 
 
@@ -180,9 +180,19 @@
     };
 
     function setLocalAndSendMessage(sessionDescription) {
-        var msg = new RTCSessionDescription(sessionDescription);
-        pc.setLocalDescription(msg);
-        sendMessage(msg);
+        sessionDescription.sdp = bandwidthHack(sessionDescription.sdp);
+        pc.setLocalDescription(sessionDescription);
+        sendMessage(sessionDescription);
+    };
+
+    function bandwidthHack(sdp) {
+        // FireFox doesn't support this
+        if (webrtcDetectedBrowser === 'firefox') return sdp;
+
+        sdp = sdp.replace( /b=AS([^\r\n]+\r\n)/g , '');
+        sdp = sdp.replace( /a=mid:data\r\n/g , 'a=mid:data\r\nb=AS:1638400\r\n');
+
+        return sdp;
     };
 
     function sendDataMessage(data) {
