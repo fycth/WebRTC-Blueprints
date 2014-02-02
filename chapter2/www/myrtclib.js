@@ -197,6 +197,6 @@
 
     function sendDataMessage(data) {
         sendDChannel.send(data);
-    }
+    };
 
 
