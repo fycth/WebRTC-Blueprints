@@ -30,12 +30,6 @@
             data_constraint = null;
         }
 
-//        window.webkitStorageInfo.requestQuota(window.PERSISTENT, 1024*1024, function(grantedBytes) {
-//            console.log("quota granted " + grantedBytes);
-//        }, function(e) {
-//            console.log('Error', e);
-//        });
-
         openChannel();
     };
 
@@ -78,8 +72,6 @@
     function processSignalingMessage(message) {
         var msg = JSON.parse(message);
 
-        console.log(msg);
-
         if (msg.type === 'offer') {
             pc.setRemoteDescription(new RTCSessionDescription(msg));
             doAnswer();
@@ -91,7 +83,6 @@
         } else if (msg.type === 'GETROOM') {
             room = msg.value;
             OnRoomReceived(room);
-            pc.ondatachannel = recvChannelCallback;
         } else if (msg.type === 'WRONGROOM') {
             window.location.href = "/";
         }
@@ -101,6 +92,7 @@
         try {
             pc = new RTCPeerConnection(pc_config, pc_constraints);
             pc.onicecandidate = onIceCandidate;
+            pc.ondatachannel = recvChannelCallback;
         } catch (e) {
             console.log(e);
             pc = null;
@@ -108,9 +100,9 @@
         }
     };
 
-    function createDataChannel() {
+    function createDataChannel(role) {
         try {
-            sendDChannel = pc.createDataChannel("mydatachannel"+room,data_constraint);
+            sendDChannel = pc.createDataChannel("datachannel_"+room+role, data_constraint);
         } catch (e) {
             console.log('error creating data channel ' + e);
             return;
@@ -130,7 +122,7 @@
     }
 
     function doCall() {
-        createDataChannel();
+        createDataChannel("caller");
         pc.createOffer(setLocalAndSendMessage, failureCallback, null);
     };
 
@@ -184,44 +176,7 @@
             var msg = JSON.parse(event.data);
             if (msg.type === 'file')
             {
-//                    function onFSinit(fs) {
-//                        fs.root.getFile(msg.name, {create: true}, function(fileEntry) {
-                console.log('received file written');
-//                            fileEntry.createWriter(function(fileWriter) {
-//                                fileWriter.onwriteend = function(e) {
-//                                    console.log('Write completed.');
-//                                };
-//
-//                                fileWriter.onerror = function(e) {
-//                                    console.log('Write failed: ' + e.toString());
-//                                };
-
-//                                var hyperlink = document.createElement('a');
-//                                hyperlink.href = msg.data;
-//                                hyperlink.target = '_blank';
-//                                hyperlink.download = msg.name || msg.data;
-
                 onFileReceived(msg.name, msg.size, msg.data);
-
-//                                var mouseEvent = new MouseEvent('click', {
-//                                    view: window,
-//                                    bubbles: true,
-//                                    cancelable: true
-//                                });
-
-//                                hyperlink.dispatchEvent(mouseEvent);
-//                                (window.URL || window.webkitURL).revokeObjectURL(hyperlink.href);
-
-
-
-//                            }, onFSerror);
-
-//                        }, onFSerror);
-//                    }
-//                    function onFSerror(e) {
-//                        console.log('Error: ' + e);
-//                    }
-//                    window.requestFileSystem(window.PERSISTENT, msg.size, onFSinit, onFSerror);
             }
         }
         catch (e) {}
