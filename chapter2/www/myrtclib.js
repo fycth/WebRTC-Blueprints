@@ -9,6 +9,7 @@
     var signalingURL;
 
     var sendDChannel = null;
+    var recvDChannel = null;
 
     var channelReady;
     var channel;
@@ -29,11 +30,11 @@
             data_constraint = null;
         }
 
-        window.webkitStorageInfo.requestQuota(window.PERSISTENT, 1024*1024, function(grantedBytes) {
-            console.log("quota granted " + grantedBytes);
-        }, function(e) {
-            console.log('Error', e);
-        });
+//        window.webkitStorageInfo.requestQuota(window.PERSISTENT, 1024*1024, function(grantedBytes) {
+//            console.log("quota granted " + grantedBytes);
+//        }, function(e) {
+//            console.log('Error', e);
+//        });
 
         openChannel();
     };
@@ -48,16 +49,17 @@
 
     function onChannelOpened() {
         channelReady = true;
+        createPeerConnection();
 
         if(location.search.substring(1,5) == "room") {
             room = location.search.substring(6);
             sendMessage({"type" : "ENTERROOM", "value" : room * 1});
             initiator = true;
+            doCall();
         } else {
             sendMessage({"type" : "GETROOM", "value" : ""});
             initiator = false;
         }
-        doCreateDataChannel();
     };
 
     function onChannelMessage(message) {
@@ -76,6 +78,8 @@
     function processSignalingMessage(message) {
         var msg = JSON.parse(message);
 
+        console.log(msg);
+
         if (msg.type === 'offer') {
             pc.setRemoteDescription(new RTCSessionDescription(msg));
             doAnswer();
@@ -87,16 +91,10 @@
         } else if (msg.type === 'GETROOM') {
             room = msg.value;
             OnRoomReceived(room);
-            createDataChannel();
+            pc.ondatachannel = recvChannelCallback;
         } else if (msg.type === 'WRONGROOM') {
             window.location.href = "/";
         }
-    };
-
-    function doCreateDataChannel() {
-        createPeerConnection();
-
-        if (initiator) doCall();
     };
 
     function createPeerConnection() {
@@ -104,60 +102,21 @@
             pc = new RTCPeerConnection(pc_config, pc_constraints);
             pc.onicecandidate = onIceCandidate;
         } catch (e) {
+            console.log(e);
             pc = null;
             return;
         }
     };
 
     function createDataChannel() {
-        sendDChannel = pc.createDataChannel("mydatachannel"+room,data_constraint);
-        sendDChannel.onmessage = function(event) {
-            try {
-                var msg = JSON.parse(event.data);
-                if (msg.type === 'file')
-                {
-                    function onFSinit(fs) {
-                        fs.root.getFile(msg.name, {create: true}, function(fileEntry) {
-                            console.log('received file written to ' + fileEntry.fullPath);
-                            fileEntry.createWriter(function(fileWriter) {
-                                fileWriter.onwriteend = function(e) {
-                                    console.log('Write completed.');
-                                };
-
-                                fileWriter.onerror = function(e) {
-                                    console.log('Write failed: ' + e.toString());
-                                };
-
-//                                var hyperlink = document.createElement('a');
-//                                hyperlink.href = msg.data;
-//                                hyperlink.target = '_blank';
-//                                hyperlink.download = msg.name || msg.data;
-
-                                onFileReceived(msg.name, msg.size, msg.data);
-
-//                                var mouseEvent = new MouseEvent('click', {
-//                                    view: window,
-//                                    bubbles: true,
-//                                    cancelable: true
-//                                });
-
-//                                hyperlink.dispatchEvent(mouseEvent);
-                                (window.URL || window.webkitURL).revokeObjectURL(hyperlink.href);
-
-
-
-                            }, onFSerror);
-
-                        }, onFSerror);
-                    }
-                    function onFSerror(e) {
-                        console.log('Error: ' + e);
-                    }
-                    window.requestFileSystem(window.PERSISTENT, msg.size, onFSinit, onFSerror);
-                }
-            }
-            catch (e) {}
+        try {
+            sendDChannel = pc.createDataChannel("mydatachannel"+room,data_constraint);
+        } catch (e) {
+            console.log('error creating data channel ' + e);
+            return;
         }
+        sendDChannel.onopen = onSendChannelStateChange;
+        sendDChannel.onclose = onSendChannelStateChange;
     }
 
     function onIceCandidate(event) {
@@ -199,4 +158,71 @@
         sendDChannel.send(data);
     };
 
+    function onSendChannelStateChange() {
+        var readyState = sendDChannel.readyState;
+        console.log('Send channel state is: ' + readyState);
+        if (readyState == "open") {
+        } else {
+        }
+    }
 
+    function recvChannelCallback(evt) {
+        console.log('Receive Channel Callback');
+        recvDChannel = evt.channel;
+        recvDChannel.onmessage = onReceiveMessageCallback;
+        recvDChannel.onopen = onReceiveChannelStateChange;
+        recvDChannel.onclose = onReceiveChannelStateChange;
+    }
+
+    function onReceiveChannelStateChange() {
+        var readyState = recvDChannel.readyState;
+        console.log('Receive channel state is: ' + readyState);
+    }
+
+    function onReceiveMessageCallback(event) {
+        try {
+            var msg = JSON.parse(event.data);
+            if (msg.type === 'file')
+            {
+//                    function onFSinit(fs) {
+//                        fs.root.getFile(msg.name, {create: true}, function(fileEntry) {
+                console.log('received file written');
+//                            fileEntry.createWriter(function(fileWriter) {
+//                                fileWriter.onwriteend = function(e) {
+//                                    console.log('Write completed.');
+//                                };
+//
+//                                fileWriter.onerror = function(e) {
+//                                    console.log('Write failed: ' + e.toString());
+//                                };
+
+//                                var hyperlink = document.createElement('a');
+//                                hyperlink.href = msg.data;
+//                                hyperlink.target = '_blank';
+//                                hyperlink.download = msg.name || msg.data;
+
+                onFileReceived(msg.name, msg.size, msg.data);
+
+//                                var mouseEvent = new MouseEvent('click', {
+//                                    view: window,
+//                                    bubbles: true,
+//                                    cancelable: true
+//                                });
+
+//                                hyperlink.dispatchEvent(mouseEvent);
+//                                (window.URL || window.webkitURL).revokeObjectURL(hyperlink.href);
+
+
+
+//                            }, onFSerror);
+
+//                        }, onFSerror);
+//                    }
+//                    function onFSerror(e) {
+//                        console.log('Error: ' + e);
+//                    }
+//                    window.requestFileSystem(window.PERSISTENT, msg.size, onFSinit, onFSerror);
+            }
+        }
+        catch (e) {}
+    };
