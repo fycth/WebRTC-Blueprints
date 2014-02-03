@@ -91,8 +91,12 @@
     function doGetUserMedia() {
         var constraints = {"audio": true, "video": {"mandatory": {}, "optional": []}};
         try {
-            getUserMedia(constraints, onUserMediaSuccess, null);
+            getUserMedia(constraints, onUserMediaSuccess,
+                function(e) {
+                        console.log("getUserMedia error "+ e.toString());
+                });
         } catch (e) {
+            console.log(e.toString());
         }
     };
 
@@ -111,6 +115,7 @@
             pc = new RTCPeerConnection(pc_config, pc_constraints);
             pc.onicecandidate = onIceCandidate;
         } catch (e) {
+            console.log(e.toString());
             pc = null;
             return;
         }
@@ -134,12 +139,16 @@
             for (var prop in constraints.mandatory) if (prop.indexOf("Moz") != -1) delete constraints.mandatory[prop];
 
         constraints = mergeConstraints(constraints, sdpConstraints);
-        pc.createOffer(setLocalAndSendMessage, null, constraints);
+        pc.createOffer(setLocalAndSendMessage, errorCallBack, constraints);
     };
 
     function doAnswer() {
-        pc.createAnswer(setLocalAndSendMessage, null, sdpConstraints);
+        pc.createAnswer(setLocalAndSendMessage, errorCallBack, sdpConstraints);
     };
+
+    function errorCallBack(e) {
+        console.log("Something is wrong: " + e.toString());
+    }
 
     function setLocalAndSendMessage(sessionDescription) {
         pc.setLocalDescription(sessionDescription);
