@@ -1,5 +1,6 @@
 
 var webrtcDetectedVersion = null;
+var webrtcDetectedBrowser = null;
 window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
 
 function initWebRTCAdapter() {
