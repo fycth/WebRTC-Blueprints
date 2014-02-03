@@ -151,11 +151,8 @@
     };
 
     function onSendChannelStateChange() {
-        var readyState = sendDChannel.readyState;
-        console.log('Send channel state is: ' + readyState);
-        if (readyState == "open") {
-        } else {
-        }
+        console.log('Send channel state is: ' + sendDChannel.readyState);
+        if (sendDChannel.readyState === 'open') sendDChannel.onmessage = onReceiveMessageCallback;
     }
 
     function recvChannelCallback(evt) {
@@ -167,8 +164,8 @@
     }
 
     function onReceiveChannelStateChange() {
-        var readyState = recvDChannel.readyState;
-        console.log('Receive channel state is: ' + readyState);
+        console.log('Receive channel state is: ' + recvDChannel.readyState);
+        if (recvDChannel.readyState === 'open') sendDChannel = recvDChannel;
     }
 
     function onReceiveMessageCallback(event) {
