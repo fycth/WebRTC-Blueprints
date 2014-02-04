@@ -16,6 +16,7 @@ init(_Any, _Req, _Opt) ->
 websocket_init(_TransportName, Req, _Opt) ->
     {Client, Req1} = cowboy_req:header(<<"x-forwarded-for">>, Req),
     State = #state{client = Client, state = connected},
+    lager:info("Connection from: ~p", [Client]),
     {ok, Req1, State, hibernate}.
 
 websocket_handle({text,Data}, Req, State) ->
@@ -25,21 +26,19 @@ websocket_handle({text,Data}, Req, State) ->
                    _ ->
                        State
                 end,
-    {[H|T]} = jsonx:decode(Data),
-    {M,_} = H,
+    JSON = jsonerl:decode(Data),
+    {M,Type} = element(1,JSON),
     case M of
         <<"type">> ->
-            {_, Type} = H,
             case Type of
                 <<"GETROOM">> ->
                     Room = generate_room(),
-                    R = jsonx:encode([{type, <<"GETROOM">>}, {value, Room}]),
+                    R = iolist_to_binary(jsonerl:encode({{type, <<"GETROOM">>}, {value, Room}})),
                     gproc:reg({p,l, Room}),
                     S = (StateNew#state{room = Room}),
                     {reply, {text, <<R/binary>>}, Req, S, hibernate};
                 <<"ENTERROOM">> ->
-                    [H1|_] = T,
-                    {<<"value">>,Room} = H1,
+                    {<<"value">>,Room} = element(2,JSON),
                     Participants = gproc:lookup_pids({p,l,Room}),
                     case length(Participants) of
                         1 ->
@@ -47,7 +46,7 @@ websocket_handle({text,Data}, Req, State) ->
                             S = (StateNew#state{room = Room}),
                             {ok, Req, S, hibernate};
                         _ ->
-                            R = jsonx:encode([{type, <<"WRONGROOM">>}]),
+                            R = iolist_to_binary(jsonerl:encode({{type, <<"WRONGROOM">>}})),
                             {reply, {text, <<R/binary>>}, Req, StateNew, hibernate}
                     end;
                 _ ->
