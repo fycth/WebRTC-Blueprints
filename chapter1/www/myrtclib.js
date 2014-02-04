@@ -71,8 +71,9 @@
 
     function processSignalingMessage(message) {
         var msg = JSON.parse(message);
-
-        if (msg.type === 'offer') {
+        if (msg.type === 'CHATMSG') {
+            onChatMsgReceived(msg.value);
+        } else if (msg.type === 'offer') {
             pc.setRemoteDescription(new RTCSessionDescription(msg));
             doAnswer();
         } else if (msg.type === 'answer') {
@@ -160,6 +161,11 @@
         for (var name in cons2.mandatory) merged.mandatory[name] = cons2.mandatory[name];
         merged.optional.concat(cons2.optional);
         return merged;
+    };
+
+    function chatSendMessage(msg) {
+        if (!channelReady) return;
+        sendMessage({"type" : "CHATMSG", "value" : msg});
     };
 
 
