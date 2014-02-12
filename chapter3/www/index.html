@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My WebRTC file sharing application</title>
+<style type="text/css">
+
+</style>
+    <script type="text/javascript" src="myrtclib.js"></script>
+    <script type="text/javascript" src="myrtcadapter.js"></script>
+</head>
+<body onLoad="onPageLoad();">
+<div id='status'></div>
+<div>
+    <input type="file" id="files" name="files[]"/>
+</div>
+<div>
+    <button onclick="onSendBtnClick()">Stream</button>
+</div>
+<div>
+    <video id="videoscreen" autoplay controls></video>
+</div>
+<script>
+    var filelist;
+
+function onPageLoad() {
+    videoScreen = document.getElementById("videoscreen");
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+    } else {
+        alert('The File APIs are not fully supported in this browser.');
+        return;
+    }
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    myrtclibinit("ws://chapter3.oslikas.com:30000");
+};
+
+function onSendBtnClick() {
+    doStreamMedia(filelist[0]);
+};
+
+function OnRoomReceived(room) {
+    var st = document.getElementById("status");
+    st.innerHTML = "Now, if somebody wants to join you, should use this link: <a href=\""+window.location.href+"?room="+room+"\">"+window.location.href+"?room="+room+"</a>";
+};
+
+function handleFileSelect(evt) {
+    filelist = evt.target.files;
+};
+
+</script>
+
+</body>
+</html>
