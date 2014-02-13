@@ -177,19 +177,8 @@
     };
 
     function setLocalAndSendMessage(sessionDescription) {
-        sessionDescription.sdp = bandwidthHack(sessionDescription.sdp);
         pc.setLocalDescription(sessionDescription);
         sendMessage(sessionDescription);
-    };
-
-    function bandwidthHack(sdp) {
-        // FireFox doesn't support this
-        if (webrtcDetectedBrowser === 'firefox') return sdp;
-
-        sdp = sdp.replace( /b=AS([^\r\n]+\r\n)/g , '');
-        sdp = sdp.replace( /a=mid:data\r\n/g , 'a=mid:data\r\nb=AS:1638400\r\n');
-
-        return sdp;
     };
 
     function sendDataMessage(data) {
@@ -227,8 +216,6 @@
         catch (e) {}
     };
 
-    // streaming
-
     function doStreamMedia(fileName) {
         var msg = JSON.stringify({"type" : "streaming_proposed"});
         sendDataMessage(msg);
@@ -241,28 +228,25 @@
 
         function startStreaming(blob) {
             if(!blob) return;
-            var size = blob.size,
-                startIndex = 0,
-                plus = chunkSize;
+            var size = blob.size;
+            var startIndex = 0;
+            var addition = chunkSize;
 
-            console.log('one chunk size: <', plus, '>');
-
-            function inner_streamer() {
+            function netStreamer() {
 
                 fileReader = new window.FileReader();
                 fileReader.onload = function (e) {
                     var chunk = new window.Uint8Array(e.target.result);
-                     pushChunk(chunk);
+                    pushChunk(chunk);
 
-                    startIndex += plus;
-                    if (startIndex <= size) window.requestAnimationFrame(inner_streamer);
-                    else
-                        pushChunk({end: true});
+                    startIndex += addition;
+                    if (startIndex <= size) window.requestAnimationFrame(netStreamer);
+                    else pushChunk({end: true});
                 };
-                fileReader.readAsArrayBuffer(blob.slice(startIndex, startIndex + plus));
+                fileReader.readAsArrayBuffer(blob.slice(startIndex, startIndex + addition));
             }
 
-            inner_streamer();
+            netStreamer();
         }
     };
 
@@ -270,11 +254,11 @@
         recvMediaSource = new MediaSource();
         recvMediaSource.addEventListener('sourceopen', function (e) {
             receiverBuffer = recvMediaSource.addSourceBuffer('video/webm; codecs="vorbis,vp8"');
-            console.log('recv MediaSource readyState: <', this.readyState, '>');
+            console.log('media source state: ', this.readyState);
         }, false);
 
         recvMediaSource.addEventListener('sourceended', function (e) {
-            console.log('recv MediaSource readyState: <', this.readyState, '>');
+            console.log('media source state: ', this.readyState);
         }, false);
 
         videoScreen.src = window.URL.createObjectURL(recvMediaSource);
