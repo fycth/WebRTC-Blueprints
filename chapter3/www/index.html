@@ -19,6 +19,9 @@
 <div>
     <video id="videoscreen" autoplay controls></video>
 </div>
+<div>
+    <video id="remotevideo" autoplay></video>
+</div>
 <script>
     var filelist;
 
@@ -30,7 +33,7 @@ function onPageLoad() {
         return;
     }
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-    myrtclibinit("ws://chapter3.oslikas.com:30000");
+    myrtclibinit("wss://www.webrtcexample.com/chapter3_signaling", document.getElementById("remotevideo"));
 };
 
 function onSendBtnClick() {

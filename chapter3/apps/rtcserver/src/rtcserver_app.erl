@@ -16,7 +16,7 @@ start() ->
 start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
                                       {'_',[
-                                            {"/", handler_websocket,[]}
+                                            {"/chapter3_signaling", handler_websocket,[]}
                                            ]}
                                      ]),
     {ok, _} = cowboy:start_http(websocket, 100, [{port, 30000}], [

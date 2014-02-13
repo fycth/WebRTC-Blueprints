@@ -2,6 +2,13 @@
     var RTCPeerConnection = null;
     var webrtcDetectedBrowser = null;
 
+    var getUserMedia = null;
+    var attachMediaStream = null;
+    var reattachMediaStream = null;
+    var localStream;
+    var remoteStream;
+    var remoteVideo;
+
     var chunkSize = 1200;
 
     var room = null;
@@ -28,7 +35,7 @@
     var receiverBuffer = null;
     var recvMediaSource = null;
 
-    function myrtclibinit(sURL) {
+    function myrtclibinit(sURL, rv) {
         signalingURL = sURL;
         initWebRTCAdapter();
         if (webrtcDetectedBrowser === 'firefox' ||
@@ -36,6 +43,8 @@
             pc_constraints = null;
             data_constraint = null;
         }
+
+        remoteVideo = rv;
 
         openChannel();
     };
@@ -56,11 +65,12 @@
             room = location.search.substring(6);
             sendMessage({"type" : "ENTERROOM", "value" : room * 1});
             initiator = true;
-            doCall();
+//            doCall();
         } else {
             sendMessage({"type" : "GETROOM", "value" : ""});
             initiator = false;
         }
+        doGetUserMedia();
     };
 
     function onChannelMessage(message) {
@@ -95,16 +105,43 @@
         }
     };
 
+    // for screen casting audio HAVE TO be false
+    function doGetUserMedia() {
+        var constraints = {"audio": false, "video": {"mandatory": {chromeMediaSource: 'screen'}, "optional": []}};
+        try {
+            getUserMedia(constraints, onUserMediaSuccess,
+                function(e) {
+                    console.log("getUserMedia error "+ e.toString());
+                });
+        } catch (e) {
+            console.log(e.toString());
+        }
+    };
+
+    function onUserMediaSuccess(stream) {
+        localStream = stream;
+//        createPeerConnection();
+        pc.addStream(localStream);
+
+        if (initiator) doCall();
+    };
+
     function createPeerConnection() {
         try {
             pc = new RTCPeerConnection(pc_config, pc_constraints);
             pc.onicecandidate = onIceCandidate;
             pc.ondatachannel = recvChannelCallback;
+            pc.onaddstream = onRemoteStreamAdded;
         } catch (e) {
             console.log(e);
             pc = null;
             return;
         }
+    };
+
+    function onRemoteStreamAdded(event) {
+        attachMediaStream(remoteVideo, event.stream);
+        remoteStream = event.stream;
     };
 
     function createDataChannel(role) {
@@ -130,11 +167,15 @@
 
     function doCall() {
         createDataChannel("caller");
-        pc.createOffer(setLocalAndSendMessage, failureCallback, null);
+        pc.createOffer(setLocalAndSendMessage, failureCallback, errorCallBack);
     };
 
     function doAnswer() {
-        pc.createAnswer(setLocalAndSendMessage, failureCallback, null);
+        pc.createAnswer(setLocalAndSendMessage, failureCallback, errorCallBack);
+    };
+
+    function errorCallBack(e) {
+        console.log("Something is wrong: " + e.toString());
     };
 
     function setLocalAndSendMessage(sessionDescription) {
@@ -277,3 +318,13 @@
     // firefox
     // about:config
     // media.mediasource.enabled = true
+
+    // screen casting
+    // for Chrome
+    // chrome://flags
+    // enable screen capture support in getusermedia()
+    // HTTPS is MANDATORY for screen casting
+    // Chrome will ask 'Do you want <web site name> to share your screen? - say YES
+
+
+
