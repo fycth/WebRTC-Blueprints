@@ -65,7 +65,6 @@
             room = location.search.substring(6);
             sendMessage({"type" : "ENTERROOM", "value" : room * 1});
             initiator = true;
-//            doCall();
         } else {
             sendMessage({"type" : "GETROOM", "value" : ""});
             initiator = false;
@@ -120,7 +119,6 @@
 
     function onUserMediaSuccess(stream) {
         localStream = stream;
-//        createPeerConnection();
         pc.addStream(localStream);
 
         if (initiator) doCall();
@@ -232,9 +230,6 @@
     // streaming
 
     function doStreamMedia(fileName) {
-
-//        doReceiveStreaming();
-
         var msg = JSON.stringify({"type" : "streaming_proposed"});
         sendDataMessage(msg);
 
@@ -269,8 +264,6 @@
 
             inner_streamer();
         }
-
-//        startStreaming();
     };
 
     function doReceiveStreaming() {
@@ -290,11 +283,8 @@
     function doAppendStreamingData(data) {
         var uint8array = new window.Uint8Array(data);
         receiverBuffer.appendBuffer(uint8array);
-//        recvMediaSource.sourceBuffers[0].appendBuffer(uint8array);
 
         if (videoScreen.paused) videoScreen.play();
-
-//        if (!playing) { console.log("recv chunk: " + data.toString()); playing = 1; }
     };
 
     function doEndStreamingData() {
@@ -302,11 +292,8 @@
     };
 
     function pushChunk(data) {
-//        setTimeout(function() { }, 50);
         var msg = JSON.stringify({"type" : "chunk", "data" : Array.apply(null, data)});
         sendDataMessage(msg);
-//        if (!playing) { console.log("send chunk " + data.toString()); playing = 1; }
-//        onChunk(data);
     };
 
     function onChunk(data) {
