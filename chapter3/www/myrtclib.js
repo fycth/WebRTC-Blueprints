@@ -325,6 +325,7 @@
     // enable screen capture support in getusermedia()
     // HTTPS is MANDATORY for screen casting
     // Chrome will ask 'Do you want <web site name> to share your screen? - say YES
+    // firefox show what shared by chrome but FF doesn't share crseen itself (transmits just video from cam)
 
 
 
