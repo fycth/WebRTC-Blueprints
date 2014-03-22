@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My video conference</title>
+<style type="text/css">
+    video {
+        width: 384px;
+        height: 288px;
+        border: 1px solid black;
+        text-align: center;
+    }
+    .container {
+        width: 780px;
+        margin: 0 auto;
+    }
+</style>
+    <script type="text/javascript" src="myrtclib.js"></script>
+    <script type="text/javascript" src="myrtcadapter.js"></script>
+</head>
+<body onLoad="onPageLoad();">
+<div class="container">
+    <video autoplay="autoplay" id="localVideo" muted="true"></video>
+    <video autoplay="autoplay" id="remoteVideo"></video>
+</div>
+<div class="container">
+    <div id="chat_area" style="width:100%; height:250px; overflow: auto; margin:0 auto 0 auto; border:1px solid rgb(200,200,200); background: rgb(250,250,250);"></div>
+</div>
+<div class="container" id="div_chat_input">
+    <input type="text" class="search-query" placeholder="chat here" name="msgline" id="chat_input">
+    <input type="submit" class="btn" id="chat_submit_btn" onclick="sendChatTxt();"/>
+</div>
+<script>
+    var chatArea = document.getElementById("chat_area");
+    var chatColorLocal = "#468847";
+    var chatColorRemote = "#3a87ad";
+
+function onPageLoad() {
+    var divChatInput = document.getElementById("div_chat_input");
+    var divChatInputWidth = divChatInput.offsetWidth;
+
+    var chatSubmitButton = document.getElementById("chat_submit_btn");
+    var chatSubmitButtonWidth = chatSubmitButton.offsetWidth;
+
+    var chatInput = document.getElementById("chat_input");
+    var chatInputWidth = divChatInputWidth - chatSubmitButtonWidth - 40;
+
+    chatInput.setAttribute("style","width:" + chatInputWidth + "px");
+    chatInput.style.width = chatInputWidth + 'px';
+
+    myrtclibinit("ws://chapter4.oslikas.com:21000/signaling",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
+};
+
+function OnRoomReceived(room) {
+    addChatTxt("Now, if somebody wants to join you, should use this link: <a href=\""+window.location.href+"?room="+room+"\">"+window.location.href+"?room="+room+"</a>",chatColorRemote);
+};
+
+function addChatTxt(msg, msgColor) {
+    var txt = "<font color=" + msgColor + ">" + getTime() + msg + "</font><br/>";
+    chatArea.innerHTML = chatArea.innerHTML + txt;
+    chatArea.scrollTop = chatArea.scrollHeight;
+};
+
+function onChatMsgReceived(msg) {
+    addChatTxt(msg, chatColorRemote);
+};
+
+function sendChatTxt() {
+    var msgline = document.getElementById("chat_input");
+    var msg = msgline.value;
+    addChatTxt(msg, chatColorLocal);
+    msgline.value = '';
+    chatSendMessage(msg);
+};
+
+function getTime() {
+    var d = new Date();
+    var c_h = d.getHours();
+    var c_m = d.getMinutes();
+    var c_s = d.getSeconds();
+
+    if (c_h < 10) { c_h = "0" + c_h; }
+    if (c_m < 10) { c_m = "0" + c_m; }
+    if (c_s < 10) { c_s = "0" + c_s; }
+
+    return c_h + ":" + c_m + ":" + c_s + ": ";
+};
+
+</script>
+
+</body>
+</html>
