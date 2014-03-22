@@ -3,5 +3,5 @@
 */log/*.lo*
 */www/tmp/
 */.idea/
-*/*/.rebar
+*/.rebar
 
