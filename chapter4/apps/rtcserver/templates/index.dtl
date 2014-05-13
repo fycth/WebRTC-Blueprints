@@ -41,7 +41,7 @@
 
 <div class="container">
 
-      <form class="form-signin" action="/" method="post">
+      <form class="form-signin" action="/chapter4" method="post">
         <h2 class="form-signin-heading">Sign in</h2>
           <input type="text" class="input-block-level" placeholder="Email address" name="n_email">
           <input type="password" class="input-block-level" placeholder="Password" name="n_password">

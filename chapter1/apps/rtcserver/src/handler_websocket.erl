@@ -16,7 +16,6 @@ init(_Any, _Req, _Opt) ->
 websocket_init(_TransportName, Req, _Opt) ->
     {Client, Req1} = cowboy_req:header(<<"x-forwarded-for">>, Req),
     State = #state{client = Client, state = connected},
-    lager:info("Connection from: ~p", [Client]),
     {ok, Req1, State, hibernate}.
 
 websocket_handle({text,Data}, Req, State) ->

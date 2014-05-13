@@ -39,9 +39,9 @@ on_request(Req) ->
 % or it has but we don't have such a session in ETS
 %
 session_no(Req, Path) ->
-    case lists:member(Path,[<<"/conference">>]) of
+    case lists:member(Path,[<<"/chapter4/conference">>]) of
         true ->
-            Req1 = cowboy_req:set_resp_header(<<"Location">>, <<"/">>, Req),
+            Req1 = cowboy_req:set_resp_header(<<"Location">>, <<"/chapter4">>, Req),
             {ok, Req2} = cowboy_req:reply(302, [], "", Req1),
             Req2;
         _ -> Req
@@ -52,9 +52,9 @@ session_no(Req, Path) ->
 % and we have session stored in ETS
 %
 session_yes(Req, Path) ->
-    case lists:member(Path,[<<"/signin">>, <<"/">>]) of
+    case lists:member(Path,[<<"/chapter4/signin">>, <<"/chapter4">>]) of
         true ->
-            Req1 = cowboy_req:set_resp_header(<<"Location">>,<<"/conference">>,Req),
+            Req1 = cowboy_req:set_resp_header(<<"Location">>,<<"/chapter4/conference">>,Req),
             {ok, Req2} = cowboy_req:reply(302, [], "", Req1),
             Req2;
         _ -> Req

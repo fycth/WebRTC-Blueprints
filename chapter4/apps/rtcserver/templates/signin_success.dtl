@@ -1,15 +1,9 @@
 
-    <title>Login successful</title>
+  <head>
     <script type="text/javascript">
 
-	location="/conference/conference.html";
-	document.location.href="/conference/conference.html";
-	location.replace("/conference/conference.html");
-	window.location.reload("/conference/conference.html");
-	document.location.replace("/conference/conference.html");
-	          
+	location="/chapter4/conference/conference.html";
+
     </script>
   </head>
-  <body>
-<a href="/conference">conference</a>
 

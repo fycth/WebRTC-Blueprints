@@ -6,7 +6,7 @@
          websocket_info/3, websocket_terminate/3]).
 
 -define(SECRET_KEY,<<"abc">>).
--define(TURN_SERVER,<<"turn:oslikas.com:3478?transport=udp">>).
+-define(TURN_SERVER,<<"turn:www.webrtcblueprints.com:3478?transport=udp">>).
 
 -record(state, {
           client = undefined :: undefined | binary(),
@@ -18,10 +18,9 @@ init(_Any, _Req, _Opt) ->
     {upgrade, protocol, cowboy_websocket}.
 
 websocket_init(_TransportName, Req, _Opt) ->
-%    {Client, Req1} = cowboy_req:header(<<"x-forwarded-for">>, Req),
-    State = #state{client = undefined, state = connected},
-%    lager:info("Connection from: ~p", [Client]),
-    {ok, Req, State, hibernate}.
+    {Client, Req1} = cowboy_req:header(<<"x-forwarded-for">>, Req),
+    State = #state{client = Client, state = connected},
+    {ok, Req1, State, hibernate}.
 
 websocket_handle({text,Data}, Req, State) ->
     StateNew = case (State#state.state) of
@@ -86,6 +85,13 @@ get_turn_creds(P) ->
   {M, S, _} = now(),
   Timestamp = list_to_binary(integer_to_list(M * 1000000 + S + 60)),
   Turn_user = <<Timestamp/binary,":",U/binary>>,
+
 %  <<Mac:160/integer>> = crypto:hmac(sha, <<"abc">>, TempU),
-  Turn_pass = base64:encode(crypto:sha_mac(<<"abc">>, Turn_user)),
+
+  % for erlang >= 17
+  Turn_pass = base64:encode(crypto:hmac(sha, <<"abc">>, Turn_user)),
+
+  % for erlang < 17
+  % Turn_pass = base64:encode(crypto:sha_mac(<<"abc">>, Turn_user)),
+
   {{url, ?TURN_SERVER},{username, Turn_user},{credential, Turn_pass}}.

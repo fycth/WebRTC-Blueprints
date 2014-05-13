@@ -47,7 +47,7 @@ function onPageLoad() {
     chatInput.setAttribute("style","width:" + chatInputWidth + "px");
     chatInput.style.width = chatInputWidth + 'px';
 
-    myrtclibinit("ws://chapter4.oslikas.com:21000/signaling",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
+    myrtclibinit("wss://www.webrtcblueprints.com/chapter4/signaling",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
 };
 
 function OnRoomReceived(room) {

@@ -26,7 +26,7 @@
     <div id="chat_area" style="width:100%; height:250px; overflow: auto; margin:0 auto 0 auto; border:1px solid rgb(200,200,200); background: rgb(250,250,250);"></div>
 </div>
 <div class="container" id="div_chat_input">
-    <input type="text" class="search-query" placeholder="chat here" name="msgline" id="chat_input">
+    <input type="text" class="search-query" placeholder="chat here" name="msgline" id="chat_input"/>
     <input type="submit" class="btn" id="chat_submit_btn" onclick="sendChatTxt();"/>
 </div>
 <script>
@@ -47,7 +47,7 @@ function onPageLoad() {
     chatInput.setAttribute("style","width:" + chatInputWidth + "px");
     chatInput.style.width = chatInputWidth + 'px';
 
-    myrtclibinit("ws://chapter1.oslikas.com:30000",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
+    myrtclibinit("wss://www.webrtcblueprints.com/chapter1/signaling",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
 };
 
 function OnRoomReceived(room) {

@@ -23,7 +23,7 @@ start(_StartType, _StartArgs) ->
                                             {"/", handler_index,[]}
                                        ]}
                                      ]),
-    {ok, _} = cowboy:start_http(websocket, 100, [{port, 21000}], [
+    {ok, _} = cowboy:start_http(websocket, 100, [{ip,{127,0,0,1}},{port, 30004}], [
                                 {env, [{dispatch, Dispatch}]},
                                 {max_keepalive, 50},
                                 {timeout, 500},
