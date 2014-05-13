@@ -25,3 +25,6 @@ Navigate your web browser to http://<YOUR_SERVER_NAME>/<APPLICATION_NAME>
 
 4. Please, refer to the book on further details of using and developing demo applications
 
+5. These applications are running and available at http://www.webrtcblueprints.com
+You can visit the page and test every of these four applications online.
+
