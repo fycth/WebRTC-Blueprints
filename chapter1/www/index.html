@@ -47,7 +47,11 @@ function onPageLoad() {
     chatInput.setAttribute("style","width:" + chatInputWidth + "px");
     chatInput.style.width = chatInputWidth + 'px';
 
-    myrtclibinit("wss://www.webrtcblueprints.com/chapter1/signaling",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
+    var _url = window.location.href;
+    var _arr = _url.split("/");
+    var domain = _arr[2];
+
+    myrtclibinit("wss://" + domain + "/signaling",document.getElementById("localVideo"),document.getElementById("remoteVideo"));
 };
 
 function OnRoomReceived(room) {

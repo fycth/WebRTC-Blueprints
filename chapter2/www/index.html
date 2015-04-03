@@ -27,7 +27,12 @@ function onPageLoad() {
         return;
     }
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-    myrtclibinit("wss://www.webrtcblueprints.com/chapter2/signaling");
+
+    var _url = window.location.href;
+    var _arr = _url.split("/");
+    var domain = _arr[2];
+
+    myrtclibinit("wss://" + domain + "/signaling");
 };
 
 function onSendBtnClick() {
